@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using DefaultNamespace;
 using Events;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -8,10 +9,16 @@ using Zenject;
 public class ProjectInstaller : MonoInstaller<ProjectInstaller>
 {
     private ProjectEvents _projectEvents;
+    private InputEvents _inputEvents;
+    private GridEvents _gridEvents;
     public override void InstallBindings()
     {
         ProjectEvents projectEvents = new();
         Container.BindInstance(projectEvents).AsSingle();
+        _inputEvents = new InputEvents();
+        Container.BindInstance(_inputEvents).AsSingle();
+        _gridEvents = new GridEvents();
+        Container.BindInstance(_gridEvents).AsSingle();
 
     }
     public override void Start()
@@ -31,9 +38,9 @@ public class ProjectInstaller : MonoInstaller<ProjectInstaller>
 
     private void OnSceneLoaded(Scene loadedScene, LoadSceneMode arg1)
     {
-        if (loadedScene.name== "Login")
+        if (loadedScene.name== EnvVar.LoginSceneName)
         {
-            LoadScene("Main");
+            LoadScene(EnvVar.MainSceneName);
         }
     }
 }
