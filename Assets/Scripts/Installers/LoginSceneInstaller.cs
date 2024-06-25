@@ -1,11 +1,11 @@
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
 using Zenject;
 
-public class LoginSceneInstaller : MonoInstaller<LoginSceneInstaller>
+namespace Installers
 {
-   public override void InstallBindings()
+   public class LoginSceneInstaller : MonoInstaller<LoginSceneInstaller>
    {
+      public override void InstallBindings()
+      {
+      }
    }
 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Components;
 using Extensions.System;
+using Extensions.Unity;
 using UnityEngine;
 
 
@@ -90,6 +91,36 @@ public static class GridF
         }
     }
 
+    public static bool TryGetMostBelowEmpty(this Tile[,] thisGrid, Tile thisTile, out Vector2Int belowTileCoords)
+    {
+        Vector2Int belowCoords = thisTile.Coords;
+        belowTileCoords = belowCoords;
+
+        belowCoords.y--;
+
+        if (thisGrid.IsInsideGrid(belowCoords) == false) return false;
+
+        if (thisGrid.Get(belowCoords)) return false;
+
+        for (int y = belowCoords.y; y < 0; y--)
+        {
+            Vector2Int thisCoords = new(thisTile.Coords.x, y);
+
+            Tile belowTile = thisGrid.Get(thisCoords);
+
+            if (belowTile == false)
+            {
+                belowTileCoords = thisCoords;
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        return true;
+    }
+
     public static List<Tile> GetMatchesX
         (this Tile[,] thisGrid, Tile tile)
         => GetMatchesX(thisGrid, tile.Coords, tile.ID);
@@ -116,6 +147,11 @@ public static class GridF
             {
                 break;
             }
+        }
+
+        if (matches.Count < 3)
+        {
+            matches.Clear();
         }
 
         return matches;
@@ -149,6 +185,11 @@ public static class GridF
             }
         }
 
+        if (matches.Count < 3)
+        {
+            matches.Clear();
+        }
+
         return matches;
     }
 
@@ -158,12 +199,12 @@ public static class GridF
         return Mathf.Clamp(value, 0, gridSize - 1);
     }
 
-    public static bool IsInsideGrid(this Tile[,] grid, int axis, int axisIndex)
+    public static bool IsInsideGrid(this Tile[,] grid, int axisCoord, int axisIndex)
     {
-        int min = 0;
+        const int min = 0;
         int max = grid.GetLength(axisIndex);
 
-        return axis >= 0 && axis < max;
+        return axisCoord >= min && axisCoord < max;
     }
 
     public static bool IsInsideGrid(this Tile[,] grid, Vector2Int coord)
@@ -256,14 +297,16 @@ public static class GridF
 
         thisGrid[coord.x, coord.y] = tileToSet;
 
-        ICoordSet coordSet = tileToSet; //disardan coord set etmemek icin
+        if (tileToSet == false) return tileAtCoord;  // false -> !=null   sadece monobehaviour da calisir object false
+
+        ICoordSet coordSet = tileToSet;
 
         coordSet.SetCoord(coord);
 
         return tileAtCoord;
     }
 
-    public static void Switch(this Tile[,] thisGrid, Tile fromTile, Vector2Int toCoords)
+    public static void Swap(this Tile[,] thisGrid, Tile fromTile, Vector2Int toCoords)
     {
         Vector2Int fromCoords = fromTile.Coords;
 
@@ -271,13 +314,20 @@ public static class GridF
         thisGrid.Set(toTile, fromCoords);
     }
 
-    public static void Switch(this Tile[,] thisGrid, Tile fromTile, Tile toTile)
+    public static void Swap(this Tile[,] thisGrid, Tile fromTile, Tile toTile)
     {
         Vector2Int fromCoords = fromTile.Coords;
         Vector2Int toCoords = toTile.Coords;
 
         thisGrid.Set(fromTile, toCoords);
         thisGrid.Set(toTile, fromCoords);
+    }
+
+    public static Vector3 CoordsToWorld(this Tile[,] thisGrid, Transform transform, Vector2Int coords)
+    {
+        Vector3 localPos = coords.ToVector3XY(); 
+
+        return transform.position + localPos;
     }
 }
 
