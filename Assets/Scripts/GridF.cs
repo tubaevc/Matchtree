@@ -8,7 +8,7 @@ using UnityEngine;
 
 public static class GridF
 {
-    private const int MatchOffset = 2;
+     private const int MatchOffset = 2;
 
     public static void GetSpawnableColors(this Tile[,] grid, Vector2Int coord, List<int> results)
     {
@@ -21,11 +21,11 @@ public static class GridF
         leftMax = ClampInsideGrid(leftMax, grid.GetLength(0));
         rightMax = ClampInsideGrid(rightMax, grid.GetLength(0));
 
-        for (int x = leftMax; x <= rightMax; x++)
+        for(int x = leftMax; x <= rightMax; x ++)
         {
             Tile currTile = grid[x, coord.y];
 
-            if (currTile == null)
+            if(currTile == null)
             {
                 lastIDCounter = 0;
                 lastPrefabID = -1;
@@ -33,14 +33,14 @@ public static class GridF
                 continue;
             }
 
-            if (lastPrefabID == -1)
+            if(lastPrefabID == -1)
             {
                 lastPrefabID = currTile.ID;
                 lastIDCounter = 1; // Initialize counter
             }
-            else if (lastPrefabID == currTile.ID)
+            else if(lastPrefabID == currTile.ID)
             {
-                lastIDCounter++;
+                lastIDCounter ++;
             }
             else
             {
@@ -48,9 +48,9 @@ public static class GridF
                 lastIDCounter = 1; // Reset counter to 1 for new tile ID
             }
 
-            if (lastIDCounter == MatchOffset) results.Remove(lastPrefabID);
+            if(lastIDCounter == MatchOffset) results.Remove(lastPrefabID);
         }
-
+        
         lastPrefabID = -1;
         lastIDCounter = 0;
 
@@ -60,11 +60,11 @@ public static class GridF
         botMax = ClampInsideGrid(botMax, grid.GetLength(1));
         topMax = ClampInsideGrid(topMax, grid.GetLength(1));
 
-        for (int y = botMax; y <= topMax; y++)
+        for(int y = botMax; y <= topMax; y ++)
         {
             Tile currTile = grid[coord.x, y];
 
-            if (currTile == null)
+            if(currTile == null)
             {
                 lastIDCounter = 0;
                 lastPrefabID = -1;
@@ -72,14 +72,14 @@ public static class GridF
                 continue;
             }
 
-            if (lastPrefabID == -1)
+            if(lastPrefabID == -1)
             {
                 lastPrefabID = currTile.ID;
                 lastIDCounter = 1; // Initialize counter
             }
-            else if (lastPrefabID == currTile.ID)
+            else if(lastPrefabID == currTile.ID)
             {
-                lastIDCounter++;
+                lastIDCounter ++;
             }
             else
             {
@@ -87,7 +87,7 @@ public static class GridF
                 lastIDCounter = 1; // Reset counter to 1 for new tile ID
             }
 
-            if (lastIDCounter == MatchOffset) results.Remove(lastPrefabID);
+            if(lastIDCounter == MatchOffset) results.Remove(lastPrefabID);
         }
     }
 
@@ -95,20 +95,20 @@ public static class GridF
     {
         Vector2Int belowCoords = thisTile.Coords;
         belowTileCoords = belowCoords;
+        
+        belowCoords.y --;
 
-        belowCoords.y--;
+        if(thisGrid.IsInsideGrid(belowCoords) == false) return false;
 
-        if (thisGrid.IsInsideGrid(belowCoords) == false) return false;
-
-        if (thisGrid.Get(belowCoords)) return false;
-
-        for (int y = belowCoords.y; y < 0; y--)
+        if(thisGrid.Get(belowCoords)) return false;
+        
+        for(int y = belowCoords.y; y < 0; y --)
         {
             Vector2Int thisCoords = new(thisTile.Coords.x, y);
-
+            
             Tile belowTile = thisGrid.Get(thisCoords);
 
-            if (belowTile == false)
+            if(belowTile == false)
             {
                 belowTileCoords = thisCoords;
             }
@@ -117,48 +117,12 @@ public static class GridF
                 break;
             }
         }
-
+        
         return true;
     }
 
-    public static List<Tile> GetMatchesX
-        (this Tile[,] thisGrid, Tile tile)
-        => GetMatchesX(thisGrid, tile.Coords, tile.ID);
-
-    public static List<Tile> GetMatchesX(this Tile[,] grid, Vector2Int coord, int prefabId)
-    {
-        Tile thisTile = grid.Get(coord);
-
-        List<Tile> matches = new();
-
-        for (int x = 0; x < grid.GetLength(0); x++)
-        {
-            Tile currTile = grid[x, coord.y];
-
-            if (currTile.ID == prefabId)
-            {
-                matches.Add(currTile);
-            }
-            else if (matches.Contains(thisTile) == false)
-            {
-                matches.Clear();
-            }
-            else if (matches.Contains(thisTile))
-            {
-                break;
-            }
-        }
-
-        if (matches.Count < 3)
-        {
-            matches.Clear();
-        }
-
-        return matches;
-    }
-
     public static List<Tile> GetMatchesY
-        (this Tile[,] thisGrid, Tile tile)
+    (this Tile[,] thisGrid, Tile tile)
         => GetMatchesY(thisGrid, tile.Coords, tile.ID);
 
     public static List<Tile> GetMatchesY(this Tile[,] grid, Vector2Int coord, int prefabId)
@@ -167,34 +131,159 @@ public static class GridF
 
         List<Tile> matches = new();
 
-        for (int y = 0; y < grid.GetLength(1); y++)
+        int botMax = coord.y - MatchOffset;
+        int topMax = coord.y + MatchOffset + 1;
+
+        int gridLength = grid.GetLength(1);
+        int gridMin = 0;
+
+        if(botMax < gridMin) botMax = gridMin;
+        if(topMax > gridLength) topMax = gridLength;
+        
+        for(int y = botMax; y < topMax; y ++)
         {
             Tile currTile = grid[coord.x, y];
-
-            if (currTile.ID == prefabId)
+            
+            if(currTile.ID == prefabId)
             {
                 matches.Add(currTile);
             }
-            else if (matches.Contains(thisTile) == false)
+            else if(matches.Contains(thisTile) == false)
             {
                 matches.Clear();
             }
-            else if (matches.Contains(thisTile))
+            else if(matches.Contains(thisTile))
             {
                 break;
             }
         }
 
-        if (matches.Count < 3)
+        if(matches.Count < 3)
         {
             matches.Clear();
         }
+        
+        return matches;
+    }
 
+    public static List<Tile> GetMatchesX
+    (this Tile[,] thisGrid, Tile tile)
+        => GetMatchesX(thisGrid, tile.Coords, tile.ID);
+    
+    public static List<Tile> GetMatchesX(this Tile[,] grid, Vector2Int coord, int prefabId)
+    {
+        Tile thisTile = grid.Get(coord);
+
+        List<Tile> matches = new();
+
+        int leftMax = coord.x - MatchOffset;
+        int rightMax = coord.x + MatchOffset + 1;
+
+        int gridLength = grid.GetLength(0);
+        int gridMin = 0;
+
+        if(leftMax < gridMin) leftMax = gridMin;
+        if(rightMax > gridLength) rightMax = gridLength;
+        
+        for(int x = leftMax; x < rightMax; x ++)
+        {
+            Tile currTile = grid[x, coord.y];
+
+            if(currTile.ID == prefabId)
+            {
+                matches.Add(currTile);
+            }
+            else if(matches.Contains(thisTile) == false)
+            {
+                matches.Clear();
+            }
+            else if(matches.Contains(thisTile))
+            {
+                break;
+            }
+        }
+
+        if(matches.Count < 3)
+        {
+            matches.Clear();
+        }
+        
+        return matches;
+    }
+    
+    public static List<Tile> GetMatchesXAll
+    (this Tile[,] thisGrid, Tile tile)
+        => GetMatchesXAll(thisGrid, tile.Coords, tile.ID);
+    
+    public static List<Tile> GetMatchesXAll(this Tile[,] grid, Vector2Int coord, int prefabId)
+    {
+        Tile thisTile = grid.Get(coord);
+
+        List<Tile> matches = new();
+
+        for(int x = 0; x < grid.GetLength(0); x ++)
+        {
+            Tile currTile = grid[x, coord.y];
+
+            if(currTile.ID == prefabId)
+            {
+                matches.Add(currTile);
+            }
+            else if(matches.Contains(thisTile) == false)
+            {
+                matches.Clear();
+            }
+            else if(matches.Contains(thisTile))
+            {
+                break;
+            }
+        }
+
+        if(matches.Count < 3)
+        {
+            matches.Clear();
+        }
+        
+        return matches;
+    }
+
+    public static List<Tile> GetMatchesYAll
+    (this Tile[,] thisGrid, Tile tile)
+        => GetMatchesYAll(thisGrid, tile.Coords, tile.ID);
+    public static List<Tile> GetMatchesYAll(this Tile[,] grid, Vector2Int coord, int prefabId)
+    {
+        Tile thisTile = grid.Get(coord);
+
+        List<Tile> matches = new();
+
+        for(int y = 0; y < grid.GetLength(1); y ++)
+        {
+            Tile currTile = grid[coord.x, y];
+
+            if(currTile.ID == prefabId)
+            {
+                matches.Add(currTile);
+            }
+            else if(matches.Contains(thisTile) == false)
+            {
+                matches.Clear();
+            }
+            else if(matches.Contains(thisTile))
+            {
+                break;
+            }
+        }
+
+        if(matches.Count < 3)
+        {
+            matches.Clear();
+        }
+        
         return matches;
     }
 
     private static int ClampInsideGrid
-        (int value, int gridSize)
+    (int value, int gridSize)
     {
         return Mathf.Clamp(value, 0, gridSize - 1);
     }
@@ -206,7 +295,7 @@ public static class GridF
 
         return axisCoord >= min && axisCoord < max;
     }
-
+    
     public static bool IsInsideGrid(this Tile[,] grid, Vector2Int coord)
     {
         return grid.IsInsideGrid(coord.x, 0) && grid.IsInsideGrid(coord.y, 1);
@@ -217,13 +306,13 @@ public static class GridF
         int maxAxis = 0;
         float maxAxisSign = input[0].Sign();
         float lastAxisLengthAbs = input[0].Abs();
-
-        for (int axisIndex = 0; axisIndex < 3; axisIndex++)
+        
+        for(int axisIndex = 0; axisIndex < 3; axisIndex ++)
         {
             float thisAxisLength = input[axisIndex];
             float thisAxisLengthAbs = thisAxisLength.Abs();
 
-            if (thisAxisLengthAbs > lastAxisLengthAbs)
+            if(thisAxisLengthAbs > lastAxisLengthAbs)
             {
                 lastAxisLengthAbs = thisAxisLengthAbs;
                 maxAxis = axisIndex;
@@ -233,19 +322,19 @@ public static class GridF
 
         return GetGridDir((maxAxis + 1) * maxAxisSign.CeilToInt());
     }
-
+    
     public static Vector2Int GetGridDirVector(Vector3 input)
     {
         int maxAxis = 0;
         float maxAxisSign = input[0].Sign();
         float lastAxisLengthAbs = input[0].Abs();
-
-        for (int axisIndex = 0; axisIndex < 3; axisIndex++)
+        
+        for(int axisIndex = 0; axisIndex < 3; axisIndex ++)
         {
             float thisAxisLength = input[axisIndex];
             float thisAxisLengthAbs = thisAxisLength.Abs();
 
-            if (thisAxisLengthAbs > lastAxisLengthAbs)
+            if(thisAxisLengthAbs > lastAxisLengthAbs)
             {
                 lastAxisLengthAbs = thisAxisLengthAbs;
                 maxAxis = axisIndex;
@@ -255,7 +344,7 @@ public static class GridF
 
         return GetGridDir((maxAxis + 1) * maxAxisSign.CeilToInt()).ToVector();
     }
-
+    
     /// <summary>
     /// Convert non-zero axis index with sign.
     /// </summary>
@@ -290,42 +379,42 @@ public static class GridF
     {
         return thisGrid[coord.x, coord.y];
     }
-
+    
     public static Tile Set(this Tile[,] thisGrid, Tile tileToSet, Vector2Int coord)
     {
         Tile tileAtCoord = thisGrid.Get(coord);
 
         thisGrid[coord.x, coord.y] = tileToSet;
 
-        if (tileToSet == false) return tileAtCoord;  // false -> !=null   sadece monobehaviour da calisir object false
+        if(tileToSet == false) return tileAtCoord;
+        
+        ITileGrid tileGrid = tileToSet;
 
-        ICoordSet coordSet = tileToSet;
-
-        coordSet.SetCoord(coord);
-
+        tileGrid.SetCoord(coord);
+        
         return tileAtCoord;
     }
 
     public static void Swap(this Tile[,] thisGrid, Tile fromTile, Vector2Int toCoords)
     {
         Vector2Int fromCoords = fromTile.Coords;
-
+        
         Tile toTile = thisGrid.Set(fromTile, toCoords);
         thisGrid.Set(toTile, fromCoords);
     }
-
+    
     public static void Swap(this Tile[,] thisGrid, Tile fromTile, Tile toTile)
     {
         Vector2Int fromCoords = fromTile.Coords;
         Vector2Int toCoords = toTile.Coords;
-
+        
         thisGrid.Set(fromTile, toCoords);
         thisGrid.Set(toTile, fromCoords);
     }
-
+    
     public static Vector3 CoordsToWorld(this Tile[,] thisGrid, Transform transform, Vector2Int coords)
     {
-        Vector3 localPos = coords.ToVector3XY(); 
+        Vector3 localPos = coords.ToVector3XY();
 
         return transform.position + localPos;
     }
