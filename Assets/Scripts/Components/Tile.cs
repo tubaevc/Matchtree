@@ -1,5 +1,6 @@
 using UnityEngine;
 using System;
+using DefaultNamespace;
 using DG.Tweening;
 using Extensions.DoTween;
 using Extensions.Unity;
@@ -9,6 +10,11 @@ namespace Components
     public class Tile : MonoBehaviour, ITileGrid, IPoolObj, ITweenContainerBind
     {
     public Vector2Int Coords => _coords;
+    // public int ID
+    // {
+    //     get => _id;
+    //     set => _id = value;
+    // }
     public int ID => _id;
     [SerializeField] private Vector2Int _coords;
     [SerializeField] private int _id;
@@ -70,6 +76,8 @@ namespace Components
     }
 
     public Sequence DoHint(Vector3 worldPos, TweenCallback onComplete = null) {
+        _spriteRenderer.sortingOrder = EnvVar.HintSpriteLayer;
+        
         Vector3 lastPos = _transform.position;
 
         TweenContainer.AddSequence = DOTween.Sequence();
@@ -78,6 +86,10 @@ namespace Components
         TweenContainer.AddedSeq.Append(_transform.DOMove(lastPos, 1f));
 
         TweenContainer.AddedSeq.onComplete += onComplete;
+        TweenContainer.AddedSeq.onComplete += delegate
+        {
+            _spriteRenderer.sortingOrder = EnvVar.TileSpriteLayer;
+        };
 
         return TweenContainer.AddedSeq;
     }

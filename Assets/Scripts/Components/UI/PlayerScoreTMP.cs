@@ -27,7 +27,7 @@ public class PlayerScoreTMP : UITMP, ITweenContainerBind
 
     private void OnMatchGroupDespawn(int arg0)
     {
-        Debug.LogWarning($"{arg0}");
+    //    Debug.LogWarning($"{arg0}");
 
         _playerScore += arg0;
 
@@ -53,5 +53,14 @@ public class PlayerScoreTMP : UITMP, ITweenContainerBind
     protected override void UnRegisterEvents()
     {
         GridEvents.MatchGroupDespawn -= OnMatchGroupDespawn;
+    }
+    public int GetCurrentScore()
+    {
+        return _playerScore;
+    }
+
+    public void SetScore(int i)
+    {
+        _playerScore = 0;
     }
 }
