@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +10,7 @@ using Extensions.System;
 using Extensions.Unity;
 using Sirenix.OdinInspector;
 using Sirenix.Serialization;
+using TMPro;
 using UnityEngine;
 using Zenject;
 
@@ -52,6 +53,14 @@ namespace Components
         [SerializeField] private int _scoreMulti;
         private Settings _mySettings;
         public ITweenContainer TweenContainer{get;set;}
+        
+        [SerializeField] private GameObject _matchParticlePrefab;
+
+        [SerializeField] private GameObject gameOverPanel;
+        [SerializeField] private PlayerScoreTMP playerScoreTMP;
+        [SerializeField] private TMP_Text gameOverScoreText;
+        private CanvasGroup canvasGroup;
+        
 
         private void Awake()
         {
@@ -91,6 +100,20 @@ namespace Components
             IsGameOver(out _hintTile, out _hintDir);
             GridEvents.GridLoaded?.Invoke(_gridBounds);
             GridEvents.InputStart?.Invoke();
+            canvasGroup = gameOverPanel.GetComponent<CanvasGroup>();
+            gameOverPanel.GetComponent<CanvasGroup>();
+
+            if (canvasGroup == null)
+            {
+                Debug.LogError("Canvas Group Null");
+                return;
+            }
+            canvasGroup.alpha = 0;
+            canvasGroup.interactable = false;
+            canvasGroup.blocksRaycasts = false;
+            
+            gameOverPanel.SetActive(false); 
+            playerScoreTMP = FindObjectOfType<PlayerScoreTMP>();
         }
 
         private void OnEnable() {RegisterEvents();}
@@ -102,32 +125,6 @@ namespace Components
         }
 
         private bool CanMove(Vector2Int tileMoveCoord) => _grid.IsInsideGrid(tileMoveCoord);
-
-        // private bool HasMatch(Tile fromTile, Tile toTile, out List<List<Tile>> matches)
-        // {
-        //     matches = new List<List<Tile>>();
-        //     bool hasMatches = false;
-        //
-        //     List<Tile> matchesAll = _grid.GetMatchesYAll(toTile);
-        //     matchesAll.AddRange(_grid.GetMatchesXAll(toTile));
-        //
-        //     if(matchesAll.Count > 0)
-        //     {
-        //         matches.Add(matchesAll);
-        //     }
-        //
-        //     matchesAll = _grid.GetMatchesYAll(fromTile);
-        //     matchesAll.AddRange(_grid.GetMatchesXAll(fromTile));
-        //
-        //     if(matchesAll.Count > 0)
-        //     {
-        //         matches.Add(matchesAll);
-        //     }
-        //     
-        //     if(matches.Count > 0) hasMatches = true;
-        //
-        //     return hasMatches;
-        // }
 
         private bool HasAnyMatches(out List<List<Tile>> matches)
         {
@@ -392,6 +389,12 @@ namespace Components
                 IncScoreMulti();
                 matches.DoToAll(DespawnTile);
                 
+                foreach(Tile tile in matches)
+                {
+                    Vector3 particlePosition = _grid.CoordsToWorld(_transform, tile.Coords);
+                    Instantiate(_matchParticlePrefab, particlePosition, Quaternion.identity);
+                }
+                
                 //TODO: Show score multi text in ui as PunchScale
                 
                 GridEvents.MatchGroupDespawn?.Invoke(matches.Count * _scoreMulti);
@@ -399,6 +402,79 @@ namespace Components
                 yield return new WaitForSeconds(0.1f);
             }
             
+            SpawnAndAllocateTiles();
+            TestGameOver();
+        }
+        private void TestGameOver()
+        {
+            bool isGameOver = IsGameOver(out Tile hintTile, out GridDir hintDir);
+
+            Debug.LogWarning($"isGameOver: {isGameOver}, hintTile {hintTile}, hintDir {hintDir}", hintTile);
+            if (isGameOver)
+            {
+                ShowGameOverPanel();
+            }
+        }
+        private void ShowGameOverPanel()
+        {
+            canvasGroup.alpha = 1;
+            canvasGroup.interactable = true;
+            canvasGroup.blocksRaycasts = true;
+
+            Time.timeScale = 0;
+
+
+            Debug.Log("show gameover panel");
+            gameOverPanel.SetActive(true);
+            gameOverScoreText.text = $"Score: {playerScoreTMP.GetCurrentScore()}";
+        }
+
+        private void HideGameOverPanel()
+        {
+            canvasGroup.alpha = 0;
+            canvasGroup.interactable = false;
+            canvasGroup.blocksRaycasts = false;
+
+            Time.timeScale = 1;
+
+            Debug.Log("hide gameover panel");
+            gameOverPanel.SetActive(false);
+        }
+
+        public void OnNewGameButtonClicked()
+        {
+            Debug.Log("New Game button clicked. Restarting game");
+            HideGameOverPanel();
+            RestartGame();
+        }
+
+        public void RestartGame()
+        {
+            ClearGrid();
+            ResetScore();
+
+            StartGame();
+        }
+
+        private void ClearGrid()
+        {
+            foreach (Tile tile in _grid)
+            {
+                if (tile != null)
+                {
+                    DespawnTile(tile);
+                }
+            }
+        }
+
+        private void ResetScore()
+        {
+            _scoreMulti = 0;
+            playerScoreTMP.SetScore(0);
+        }
+
+        private void StartGame()
+        {
             SpawnAndAllocateTiles();
         }
 
